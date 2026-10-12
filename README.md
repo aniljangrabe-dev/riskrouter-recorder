@@ -27,6 +27,18 @@ What is in them:
 npx -y -p riskrouter-recorder riskrouter-recorder-mcp     # the local MCP server, over stdio
 ```
 
+In an MCP client's settings (setup steps for an assistant: [`llms-install.md`](llms-install.md)):
+
+```json
+{ "mcpServers": { "riskrouter-recorder": { "command": "npx",
+    "args": ["-y", "-p", "riskrouter-recorder", "riskrouter-recorder-mcp"],
+    "env": { "RISKROUTER_JOURNAL": "/absolute/path/to/evidence-journal.jsonl" } } } }
+```
+
+Its tools are `record_decision`, `evidence_lookup` and `evidence_status`; only `record_decision` writes, and
+nothing deletes. With `RISKROUTER_API_KEY` set, each record's salted digest goes to the log; without it, nothing
+leaves the machine.
+
 RiskRouter also runs a hosted MCP endpoint for reading the log and its proofs, at `https://api.riskrouter.eu/mcp`
 (`eu.riskrouter/evidence-log` in the official MCP Registry). That is the service, not this package.
 

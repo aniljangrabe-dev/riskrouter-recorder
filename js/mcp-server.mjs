@@ -33,6 +33,8 @@ const TOOLS = [
   {
     name: 'record_decision',
     title: 'Record a decision as evidence',
+    // Appends to the operator's journal and, with a key, sends a digest to the log: it changes and removes nothing.
+    annotations: { title: 'Record a decision as evidence', readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
     description: 'Record, as evidence, a decision you have taken: what you decided, about which case (a reference, never a name or an email), and why. ' +
       'The record is kept in the operator\'s journal and only its salted digest is sent to the evidence log, so it can later be shown to be unchanged. ' +
       'Keys are lower-case letters, digits and underscores; numbers are whole. Returns the record\'s digest.',
@@ -49,12 +51,14 @@ const TOOLS = [
   {
     name: 'evidence_lookup',
     title: 'Where a recorded decision stands',
+    annotations: { title: 'Where a recorded decision stands', readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     description: 'Given a record_digest returned by record_decision, say whether it is pending, recorded (with its position in the log) or refused.',
     inputSchema: { type: 'object', properties: { record_digest: { type: 'string' } }, required: ['record_digest'] }
   },
   {
     name: 'evidence_status',
     title: 'Evidence recorder status',
+    annotations: { title: 'Evidence recorder status', readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     description: 'How many decisions are pending, recorded and refused in this journal, and whether a log is configured.',
     inputSchema: { type: 'object', properties: {} }
   }
