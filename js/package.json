@@ -9,12 +9,14 @@
     "./agents": "./agents.mjs",
     "./mcp": "./mcp-server.mjs",
     "./logseal": "./logseal.mjs",
-    "./otlp-sealer": "./otlp-sealer.mjs"
+    "./otlp-sealer": "./otlp-sealer.mjs",
+    "./seal-release": "./seal-release.mjs"
   },
   "bin": {
     "riskrouter-recorder-mcp": "mcp-server.mjs",
     "riskrouter-logseal": "logseal.mjs",
-    "riskrouter-otlp-sealer": "otlp-sealer.mjs"
+    "riskrouter-otlp-sealer": "otlp-sealer.mjs",
+    "riskrouter-seal-release": "seal-release.mjs"
   },
   "files": [
     "recorder.mjs",
@@ -22,6 +24,7 @@
     "mcp-server.mjs",
     "logseal.mjs",
     "otlp-sealer.mjs",
+    "seal-release.mjs",
     "README.md",
     "LICENSE"
   ],

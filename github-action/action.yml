@@ -1,0 +1,66 @@
+name: Seal a release with RiskRouter
+description: Seal the SHA-256 of each release file in RiskRouter's public evidence log, and keep a receipt anyone can verify offline.
+author: RiskRouter
+branding:
+  icon: lock
+  color: gray-dark
+
+# Only each record's salted digest and its kind leave the runner; the files and the
+# receipts stay with you. A receipt is a riskrouter-record-bundle|1 that the published
+# verifiers check offline (https://riskrouter.eu/verify). Keep it with the release.
+
+inputs:
+  api-key:
+    description: Your RiskRouter key (free sandbox keys at https://riskrouter.eu/integrate). Pass it from a secret.
+    required: true
+  files:
+    description: Files to seal, as shell globs separated by spaces or new lines, such as "dist/*.tar.gz dist/*.zip".
+    required: true
+  product:
+    description: The product's name in the record. Defaults to the repository, owner/name.
+    required: false
+    default: ''
+  version:
+    description: The version in the record. Defaults to the tag or branch that triggered the run.
+    required: false
+    default: ''
+  sbom:
+    description: Path to the release's SBOM (CycloneDX or SPDX). With it, each record is a cra.release of the Cyber Resilience Act pack.
+    required: false
+    default: ''
+  out:
+    description: Directory for the receipts and the journal.
+    required: false
+    default: riskrouter-receipts
+  api:
+    description: The evidence API, if you run your own instance.
+    required: false
+    default: https://api.riskrouter.eu
+
+outputs:
+  receipts:
+    description: The directory holding one receipt per sealed file.
+    value: ${{ steps.seal.outputs.receipts }}
+
+runs:
+  using: composite
+  steps:
+    - id: seal
+      shell: bash
+      env:
+        RISKROUTER_API_KEY: ${{ inputs.api-key }}
+        RISKROUTER_BASE: ${{ inputs.api }}
+        FILES: ${{ inputs.files }}
+        PRODUCT: ${{ inputs.product || github.repository }}
+        VERSION: ${{ inputs.version || github.ref_name }}
+        SBOM: ${{ inputs.sbom }}
+        OUT: ${{ inputs.out }}
+      run: |
+        set -f; patterns=($FILES); set +f
+        shopt -s nullglob
+        files=()
+        for p in "${patterns[@]}"; do for f in $p; do files+=("$f"); done; done
+        if [ ${#files[@]} -eq 0 ]; then echo "::error::No file matches: $FILES"; exit 1; fi
+        args=(--product "$PRODUCT" --version "$VERSION" --out "$OUT")
+        if [ -n "$SBOM" ]; then args+=(--sbom "$SBOM"); fi
+        node "${{ github.action_path }}/../js/seal-release.mjs" "${args[@]}" "${files[@]}"

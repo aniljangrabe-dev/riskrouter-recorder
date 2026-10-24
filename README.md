@@ -42,6 +42,40 @@ leaves the machine.
 RiskRouter also runs a hosted MCP endpoint for reading the log and its proofs, at `https://api.riskrouter.eu/mcp`
 (`eu.riskrouter/evidence-log` in the official MCP Registry). That is the service, not this package.
 
+## Seal a release from GitHub Actions
+
+Seal the SHA-256 of each file of a release, so anyone can later show the artefact they hold is the one that
+shipped, on the day it shipped. Only each record's salted digest leaves the runner; the files stay where they are.
+With an SBOM, each record is a `cra.release` of the Cyber Resilience Act pack.
+
+```yaml
+on:
+  release:
+    types: [published]
+jobs:
+  seal:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # to attach the receipts to the release
+    steps:
+      - uses: actions/checkout@v4
+      - run: gh release download "$GITHUB_REF_NAME" --dir dist
+        env: { GH_TOKEN: "${{ github.token }}" }
+      - id: seal
+        uses: aniljangrabe-dev/riskrouter-recorder/github-action@main
+        with:
+          api-key: ${{ secrets.RISKROUTER_API_KEY }}   # free sandbox key: https://riskrouter.eu/integrate
+          files: dist/*
+          # sbom: dist/sbom.cdx.json
+      - run: gh release upload "$GITHUB_REF_NAME" ${{ steps.seal.outputs.receipts }}/*.riskrouter.json
+        env: { GH_TOKEN: "${{ github.token }}" }
+```
+
+Each `<file>.riskrouter.json` is a receipt the published verifiers check offline. Attaching it to the release makes
+the record and its salt public, which is fine for a public release; for a private one, keep the receipts privately
+instead. Without the receipt, nobody, RiskRouter included, can tie the log entry to the file. The same sealer runs
+outside GitHub: `RISKROUTER_API_KEY=… npx -p riskrouter-recorder riskrouter-seal-release --product acme/app --version 1.2.0 dist/*`.
+
 ## Checking what was recorded
 
 A record's bundle is checked offline, without RiskRouter, by either of the open-source verifiers at
