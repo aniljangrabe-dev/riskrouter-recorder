@@ -95,7 +95,8 @@ export function createFolderSealer({ recorder, folder, receipts = path.join(fold
       try { st = fs.statSync(file); } catch { continue; }
       const before = seen.get(rel);
       seen.set(rel, { size: st.size, mtimeMs: st.mtimeMs });
-      if (now() - st.mtimeMs < settle * 1000 || (before && (before.size !== st.size || before.mtimeMs !== st.mtimeMs) && settle > 0)) continue;
+      // A file's time can be a little ahead of this clock, so the settle rule applies only when one is asked for.
+      if (settle > 0 && (now() - st.mtimeMs < settle * 1000 || (before && (before.size !== st.size || before.mtimeMs !== st.mtimeMs)))) continue;
       const known = latest.get(rel);
       if (known && known.record.file_size === st.size && known.mtimeMs === st.mtimeMs) continue;
       const file_sha256 = await digestFile(file);
