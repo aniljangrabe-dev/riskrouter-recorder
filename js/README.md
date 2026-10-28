@@ -125,3 +125,44 @@ manifest of every file's SHA-256, whose own digest is sealed so the handover is 
 
 It detects nothing and names no attacker, and it cannot protect lines a machine writes after it has been
 taken over: run it on a log collector the watched systems cannot reach. https://riskrouter.eu/security-logs
+
+## Rows in your database: `dbseal`
+
+Seal the rows of a PostgreSQL table as they are written, with no integration code. `install` prints SQL you read
+and apply yourself: a queue in a schema `riskrouter`, and a trigger that copies each inserted, updated or deleted
+row (as `to_jsonb(row)::text`) into it in the same transaction. `run` seals each queued row as a `db.row` record:
+the table, the row's key, the operation and the SHA-256 of the row's text. The row stays in your database; only
+the record's salted digest is sent, and a row is marked sealed in `riskrouter.seal_done` only once the log has
+recorded it. It talks to the database through `psql`; no driver.
+
+    npx -p riskrouter-recorder riskrouter-dbseal install --table public.suitability_reports --key id | psql "$DATABASE_URL"
+    RISKROUTER_API_KEY=rr_... npx -p riskrouter-recorder riskrouter-dbseal run --db "$DATABASE_URL" --chain
+    npx -p riskrouter-recorder riskrouter-dbseal verify --db "$DATABASE_URL" --table public.suitability_reports
+
+`verify` checks that every sealed row's text still gives its sealed SHA-256, that no queued row was skipped, and
+that each row of the table as it is now is the row as last sealed (one that differs was changed with the trigger
+switched off). With `--chain` and `RISKROUTER_CHAIN_SECRET`, each table is a completeness chain.
+
+## Files as they land in a folder: `folderseal`
+
+Watch a folder (a shared drive, a synced SharePoint or OneDrive library, a scanner's output) and seal each new or
+changed file once it has settled, with the record `/seal` makes: its SHA-256, size and path. A receipt is written
+to `.riskrouter-receipts` only once the log has recorded the seal; https://riskrouter.eu/check and the verifiers
+check it offline. Nothing is uploaded, and the files are never touched. A changed file is sealed again, naming
+the version before.
+
+    RISKROUTER_API_KEY=rr_... npx -p riskrouter-recorder riskrouter-folderseal --folder ./advice-files --chain
+    RISKROUTER_API_KEY=rr_... npx -p riskrouter-recorder riskrouter-folderseal --folder ./advice-files --once   # from a scheduled task
+    npx -p riskrouter-recorder riskrouter-folderseal verify --folder ./advice-files
+
+## The inspector's file: `inspector`
+
+Everything a journal sealed in a period, from any of these tools, as one new folder anyone can check without us:
+a receipt per record, a completeness statement per chain, the log's public key, an `index.html` that lists every
+record and says how to check it (it runs no script and makes no request), and a manifest of every file's SHA-256,
+whose own digest is sealed so the handover is evidence too. It holds your records and salts: hand it only to whom
+you would show the records.
+
+    RISKROUTER_API_KEY=rr_... npx -p riskrouter-recorder riskrouter-inspector --journal ./advice-files/.riskrouter-receipts/evidence-journal.jsonl \
+      --from 2026-10-01 --to 2026-10-31 --chain folder:advice-files --title "Advice files, October 2026" --out ./inspector-2026-10
+    npx -p riskrouter-recorder riskrouter-inspector verify ./inspector-2026-10

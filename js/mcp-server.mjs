@@ -96,7 +96,7 @@ export function createServer({ recorder, kinds }) {
       return reply({
         protocolVersion: PROTOCOLS.includes(asked) ? asked : PROTOCOLS[0],
         capabilities: { tools: { listChanged: false } },
-        serverInfo: { name: 'riskrouter-recorder', version: '0.1.1' },
+        serverInfo: { name: 'riskrouter-recorder', version: '0.2.0' },
         instructions: 'Use record_decision each time you take a decision the operator must be able to evidence later. ' +
           'Refer to people by reference, never by name or email.'
       });

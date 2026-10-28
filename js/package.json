@@ -1,6 +1,6 @@
 {
   "name": "riskrouter-recorder",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Evidence from where decisions are already logged: keep each record in your own journal, send only its salted digest to a RiskRouter-compatible evidence log.",
   "license": "Apache-2.0",
   "type": "module",
@@ -10,13 +10,19 @@
     "./mcp": "./mcp-server.mjs",
     "./logseal": "./logseal.mjs",
     "./otlp-sealer": "./otlp-sealer.mjs",
-    "./seal-release": "./seal-release.mjs"
+    "./seal-release": "./seal-release.mjs",
+    "./folderseal": "./folderseal.mjs",
+    "./dbseal": "./dbseal.mjs",
+    "./inspector": "./inspector.mjs"
   },
   "bin": {
     "riskrouter-recorder-mcp": "mcp-server.mjs",
     "riskrouter-logseal": "logseal.mjs",
     "riskrouter-otlp-sealer": "otlp-sealer.mjs",
-    "riskrouter-seal-release": "seal-release.mjs"
+    "riskrouter-seal-release": "seal-release.mjs",
+    "riskrouter-folderseal": "folderseal.mjs",
+    "riskrouter-dbseal": "dbseal.mjs",
+    "riskrouter-inspector": "inspector.mjs"
   },
   "files": [
     "recorder.mjs",
@@ -25,6 +31,9 @@
     "logseal.mjs",
     "otlp-sealer.mjs",
     "seal-release.mjs",
+    "folderseal.mjs",
+    "dbseal.mjs",
+    "inspector.mjs",
     "README.md",
     "LICENSE"
   ],
